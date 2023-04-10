@@ -1,6 +1,7 @@
 import numpy as np
 from chn_solver import CHNSudokuSolver
 from sol_vec_ga import GASudokuSolver
+from sol_vec_particle_swarm import PSOSudokuSolver
 
 # Define a Sudoku puzzle as a numpy array
 grid = np.array([
@@ -16,13 +17,16 @@ grid = np.array([
 ])
 
 # Create an instance of the CHNSudokuSolver class (Un-Comment to Use the Hopfield Network on it's own)
-# solver = CHNSudokuSolver()
+solver = CHNSudokuSolver()
 
-# Create a solver object
-solver = GASudokuSolver()
+# Create a solver object (Un-Comment to Use the Hopfield Network with Genetic Algorithm to Optimise the Solution Vector)
+# solver = GASudokuSolver()
+
+# Create a solver object (Un-Comment to Use the Hopfield Network with Particle Swarm Optimisation to Optimise the Solution Vector)
+# solver = PSOSudokuSolver()
 
 # Define a Sudoku grid as a string
-grid = '003020600900305001001806400008102900700000008006708200002609500800203009005010300'
+# grid = '003020600900305001001806400008102900700000008006708200002609500800203009005010300'
 
 # Solve the Sudoku puzzle
 solution = solver.solve_sudoku(grid)

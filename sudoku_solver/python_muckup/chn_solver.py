@@ -1,6 +1,8 @@
 import numpy as np
 import math
 
+MaxTemp = 10
+MinTemp = 5
 class CHNSudokuSolver:
     def __init__(self):
         self.N = 9
@@ -10,7 +12,7 @@ class CHNSudokuSolver:
         self.weights = np.zeros((self.num_neurons, self.num_neurons))
 
         # Initialize the temperature parameter
-        self.T = 1.0
+        self.T = MaxTemp
 
         # Initialize the cooling schedule
         self.alpha = 0.99
@@ -75,7 +77,7 @@ class CHNSudokuSolver:
         T = self.T
 
         # Loop until the temperature reaches a minimum value
-        while T > 1e-6:
+        while T > MinTemp:
             # Choose a random neuron and flip its state
             index = np.random.randint(self.num_neurons)
             new_solution = np.copy(solution)
