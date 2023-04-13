@@ -1,8 +1,10 @@
 import numpy as np
 import math
 
-MaxTemp = 10
+MaxTemp = 6
 MinTemp = 5
+CoolingRate = 0.99
+
 class CHNSudokuSolver:
     def __init__(self):
         self.N = 9
@@ -110,7 +112,6 @@ def vector_to_sudoku(self, vec):
             if len(index) == 1:
                 grid[i][j] = index[0] + 1
     return grid
-
 
     def sudoku_to_vector(self, grid):
         # Convert a Sudoku grid to a vector of binary values
