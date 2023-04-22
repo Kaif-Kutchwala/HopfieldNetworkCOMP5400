@@ -25,7 +25,7 @@ def calculate_average_digit_matrices():
     (images, labels), _ = mnist.load_data()
     # Group images by digits
     digits = group_by_digits(images, labels)
-    
+
     # Get average  matrix for each digit
     averages = {}
     for i in range(0, 10):
@@ -82,3 +82,37 @@ def store_thresholded_average_matrices():
 def apply_threshold(array):
     # If value is higher than 100 set to 1 else -1
     return np.where(array > 100, 1, -1)
+
+
+def display_average_digits():
+    file = open("mnist_digits_average.json", "r")
+    data = json.loads(file.read())
+    file.close()
+
+    digits = []
+    for i in range(10):
+        digits.append(np.array(data[str(i)]))
+
+    plt.figure(figsize=[10, 4])
+    plt.title('Average Digits - MNIST')
+    for id, digit in enumerate(digits):
+        plt.subplot(1, 10, id + 1)
+        plt.axis('off')
+        plt.title(str(id))
+        plt.imshow(digit.reshape((28, 28)), cmap='gray')
+    plt.show()
+
+
+def display_dataset_digits():
+    file = open("mnist_digits_threshold.json", "r")
+    digits = json.loads(file.read())["data"]
+    file.close()
+
+    plt.figure(figsize=[10, 4])
+    plt.title('HN Memories')
+    for i in range(10):
+        plt.subplot(1, 10, i + 1)
+        plt.axis('off')
+        plt.title(str(i))
+        plt.imshow(np.array(digits[i]).reshape((28, 28)), cmap='gray')
+    plt.show()
