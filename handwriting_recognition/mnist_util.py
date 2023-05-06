@@ -116,3 +116,47 @@ def display_dataset_digits():
         plt.title(str(i))
         plt.imshow(np.array(digits[i]).reshape((28, 28)), cmap='gray')
     plt.show()
+
+def display_hamming_distance():
+    hamming_distances = get_digits_hamming()
+
+    plt.figure(figsize=[10, 4])
+    plt.title('Hamming distances')
+    for y in range(hamming_distances.shape[0]):
+        for x in range(hamming_distances.shape[1]):
+            plt.text(x, y, '%.0f' % hamming_distances[y, x],
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    color="white"
+                    )
+    plt.imshow(hamming_distances.reshape((10,10)), cmap='gray')
+    print(hamming_distances)
+    plt.show()
+
+def get_digits_hamming():
+    file = open("mnist_digits_threshold.json", "r")
+    digits = json.loads(file.read())["data"]
+    file.close()
+    hamming_distances = np.zeros((10,10))
+
+    for i in range(10):
+        for j in range(10):
+            hamming_distances[i][j] = get_hamming_distance(digits[i], digits[j])
+    
+    return hamming_distances
+
+def get_closest_digits():
+    hamming_distances = get_digits_hamming()
+    for digit, hamming in enumerate(hamming_distances):
+        closest_digits = {}
+        for i in sorted(hamming):
+            closest_digits[str(list(hamming).index(i))] = i 
+        print("Digit:", digit, "Closest Values:", closest_digits)
+
+def get_hamming_distance(a, b):
+    matrix1 = np.array(a).ravel()
+    matrix2 = np.array(b).ravel()
+
+    hamming_distance = sum(
+        [1 if x != y else 0 for x, y in zip(matrix1, matrix2)])
+    return hamming_distance
