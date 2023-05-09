@@ -7,11 +7,8 @@ class HopfieldNetwork:
     def __init__(self, neuron_count):
         # AKA 'N'
         self.n = neuron_count
-        # All neurons start with -1 as state
-        self.neuron_states = -1 * np.ones(self.n)
         # Weight matrix is initialised to be of size N*N with all weights set to 0
         self.weights = np.zeros((self.n, self.n))
-        self.order = np.arange(0, self.n)
 
     def train(self, memories, learning_rule="pi"):
         if learning_rule == "pi":
