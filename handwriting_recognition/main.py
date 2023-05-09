@@ -163,3 +163,65 @@ def show_classification_progession():
         plt.imshow(pattern.reshape((28, 28)), cmap='gray')
     # Show the plot
     plt.show()
+
+# Displays a set of random samples and the network's prediction as well as final state
+# Use test_count to specify number of tests to conduct and display
+# Top row -> Input patterns with true labels, Bottom row -> output patterns with predicted labels
+def show_random_tests(test_count):
+    file = open("mnist_digits_threshold.json", "r")
+    dataset = json.loads(file.read())["data"]
+    file.close()
+
+    # create Hopfield network with 784 neurons
+    hn = HopfieldNetwork(784)
+
+    # define patterns to train network
+    patterns = np.array(dataset)
+
+    # train the network on the patterns
+    hn.train(patterns, "pi")
+
+    # create variables to store input patterns, output patterns and labels
+    inputs = []
+    input_labels = []
+    output_labels = []
+    outputs = []
+
+    # load mnist test dataset
+    _, (x_test, y_test) = mnist.load_data()
+
+    # create a list of specified random test samples
+    random_test_samples = [random.randint(0, len(x_test) - 1) for _ in range(test_count)]
+
+    # For every test sample
+    for test_sample_index in random_test_samples:
+        # reshape the mnist sample to match dimensions 784x1
+        input_pattern = np.where(np.array(x_test[test_sample_index]).reshape(784, 1) > 100, 1, -1)
+        # store input pattern and label
+        inputs.append(input_pattern)
+        input_labels.append(y_test[test_sample_index])
+
+        # retrieve the closest stored pattern
+        output_pattern, prediction = hn.recall(input_pattern, 100)
+        # store output pattern and predicted label
+        output_labels.append(prediction)
+        outputs.append(output_pattern)
+
+    # Plot patterns
+    plt.figure(figsize=[10, 4])
+    # For every test sample
+    for x in range(len(random_test_samples)):
+        # Plot the input pattern with true label
+        plt.subplot(2, len(random_test_samples), x + 1)
+        plt.axis('off')
+        plt.title(str(input_labels[x]))
+        plt.imshow(inputs[x].reshape((28, 28)), cmap='gray')
+        
+        # Plot the output pattern with predicted label below it
+        plt.subplot(2, len(random_test_samples), x + len(random_test_samples) + 1)
+        plt.axis('off')
+        plt.title(str(output_labels[x]))
+        plt.imshow(outputs[x].reshape((28, 28)), cmap='gray')
+    
+    # Show the plot
+    plt.show()
