@@ -113,3 +113,53 @@ def display_confusion_matrix(data):
     # plt.imshow( (np.ones((10, 10)) - confusion_matrix), cmap='gray', origin="lower" )
     plt.show()
 
+# Selects a random test digit from the mnist dataset and displays
+# the state of the network as it progresses to its final state.
+# Number of iterations of the network and the steps at which to record
+# the state of the network can be modified as per requirements.
+def show_classification_progession():
+    # get network training dataset
+    file = open("mnist_digits_threshold.json", "r")
+    dataset = json.loads(file.read())["data"]
+    file.close()
+
+    # create Hopfield network with 784 neurons
+    hn = HopfieldNetwork(784)
+
+    # define patterns to train network
+    patterns = np.array(dataset)
+
+    # train the network on the patterns
+    hn.train(patterns, "pi")
+
+    # load mnist test data
+    _, (x_test, y_test) = mnist.load_data()
+
+    # pick a random test to use for run
+    number_of_test_patterns = len(x_test) 
+    random_test_id = random.randint(0, number_of_test_patterns - 1)
+
+    # reshape mnist pattern to single list with 784 elements
+    input_pattern = np.where(np.array(x_test[random_test_id]).reshape(784, 1) > 100, 1, -1)
+
+    # Define steps to record for each iteration
+    steps_to_record = [0, 100, 400, 500, 750]
+    # Define number of iterations
+    iteration_count = 2
+    # Simulate hopfield network, but us recall_with_steps to get state at all required steps
+    output_pattern_states, predictions = hn.recall_with_steps(input_pattern, steps_to_record, iteration_count)
+
+    # Plot the results
+    plt.figure(figsize=[10, 4])
+    # For each pattern in output
+    for iteration, pattern in enumerate(output_pattern_states):
+        # Create a subplot
+        plt.subplot(1, len(steps_to_record*iteration_count), iteration + 1)
+        # Turn axis labels off
+        plt.axis('off')
+        # Set title to be network's prediction for state
+        plt.title(str(predictions[iteration]))
+        # Display state in subplot
+        plt.imshow(pattern.reshape((28, 28)), cmap='gray')
+    # Show the plot
+    plt.show()
