@@ -1,10 +1,11 @@
 import pygame
+from main import classify
 
 BLUE = (0 , 0 , 255)
 WHITE = (255, 255, 255)
 GREY = (240,240,240)
-(width, height) = (500,500)
-BLOCK_SIZE = 25
+(width, height) = (784,784)
+BLOCK_SIZE = 28
 colored_pixels = []
 
 screen = pygame.display.set_mode((width, height))
@@ -24,7 +25,6 @@ def color_pixel( screen, x, y, erase = False ):
     else:
         if (x,y) not in colored_pixels:
             colored_pixels.append((x,y))
-    print(colored_pixels)
 
 def draw_grid(screen):
     for x in range(0, width, BLOCK_SIZE):
@@ -33,7 +33,7 @@ def draw_grid(screen):
             pygame.draw.rect(screen, GREY, rect, 1)
 
 def get_drawing():
-    output = [0 for i in range((width // BLOCK_SIZE)**2)]
+    output = [-1 for i in range((width // BLOCK_SIZE)**2)]
     for x,y in colored_pixels:
         x //= BLOCK_SIZE
         y //= BLOCK_SIZE
@@ -56,6 +56,9 @@ while running:
                 colored_pixels.clear()
             if pygame.key.name(event.key) in ["g", "G"]:
                 print(get_drawing())
+            if pygame.key.name(event.key) in ["h", "H"]:
+                input = get_drawing()
+                classify(input)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             ( x, y ) = pygame.mouse.get_pos() # returns the position of mouse cursor
