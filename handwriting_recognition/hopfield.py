@@ -67,6 +67,8 @@ class HopfieldNetwork:
             else:
                 no_change_count = 0
         return state, self.get_result_label(state)
+    def sign(self, value):
+        return 1 if value >= 0 else -1
 
     def get_result_label(self, pattern):
         file = open("mnist_digits_threshold.json", "r")
