@@ -64,6 +64,29 @@ class HopfieldNetwork:
             else:
                 no_change_count = 0
         return state, self.get_result_label(state)
+    
+    def recall_with_steps(self, input_pattern, steps_to_record, iteration_count=1):
+        network_states = []
+        predictions = []
+        order = np.arange(0, self.n)
+        np.random.shuffle(order)
+        state = np.copy(input_pattern)
+        no_change_count = 0
+        for _ in range(iteration_count):
+            for iteration, i in enumerate(order):
+                if iteration in steps_to_record:
+                    network_states.append(np.copy(state))
+                    predictions.append(self.get_result_label(np.copy(state)))
+                weights = self.weights[i, :]
+                state[i] = self.sign(np.dot(weights, state))
+            if np.array_equal(state, input_pattern):
+                no_change_count += 1
+                if no_change_count > 3:
+                    break
+            else:
+                no_change_count = 0
+        return network_states, predictions
+    
     def sign(self, value):
         return 1 if value >= 0 else -1
 
