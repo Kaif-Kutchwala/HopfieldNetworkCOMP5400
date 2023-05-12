@@ -1,5 +1,8 @@
 {
     "files.associations": {
         "iostream": "cpp"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "./handwriting_recognition"
+    ]
 }
