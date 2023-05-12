@@ -1,9 +1,8 @@
+import random as rnd
 import numpy as np
 import numpy.random as rnd
-import numpy as np
 import matplotlib.pyplot as plt
 import random
-from sklearn.metrics import confusion_matrix
 
 # Define a list of puzzles, each with a solution
 puzzles = [
@@ -22,18 +21,25 @@ puzzles = [
         "solution": [3, 2, 4, 1, 1, 3, 1, 4, 2, 4, 1, 2, 2, 3, 4, 3],
         "difficulty": "hard"
     },
-#More puzzles can be added here if needed
+    # More puzzles can be added here if needed
 ]
 
 # Puzzle generator and solver functions
 
 
 def hnetInitParameters(sudoku, lH=4., lG=2., lR=1., lC=1., lB=1.):
-    n1 = sudoku . shape[0]
+    # Get the size of the sudoku grid
+    n1 = sudoku.shape[0]
+    # Calculate the total number of cells in the sudoku grid
     n2 = n1 ** 2
+    # Calculate the total number of possibilities for each cell in the sudoku grid
     n3 = n1 ** 3
-    m = np.sqrt(n1). astype(int)
-    nh = np.sum(sudoku > 0)  # number of hints
+    # Calculate the size of each block in the sudoku grid
+    m = np.sqrt(n1).astype(int)
+    # Count the number of given hints in the sudoku grid
+    nh = np.sum(sudoku > 0)
+
+    # Create some vectors and matrices for later use
     vec1_m = np.ones(m)
     vec1_n1 = np.ones(n1)
     vec1_n2 = np.ones(n2)
@@ -42,16 +48,19 @@ def hnetInitParameters(sudoku, lH=4., lG=2., lR=1., lC=1., lB=1.):
     matI_m = np.eye(m)
     matI_n1 = np.eye(n1)
     matI_n2 = np.eye(n2)
-# matrix forhnt constraints
+
+    # Create the matrix for hint constraints
     h = 0
-    matH = np . zeros((nh, n3))
+    matH = np.zeros((nh, n3))
     for i in range(n1):
         for j in range(n1):
             v = sudoku[i, j]
             if v > 0:
+                # For each hint, set the corresponding row in the matrix to a one-hot encoding of the hint value
                 matH[h, i * n2 + j * n1: i * n2 + j * n1 + n1] = matI_n1[v - 1]
                 h = h + 1
-# matrices for cell , row , column , and block constraints
+
+    # Create the matrices for cell, row, column, and block constraints
     matG = np.kron(matI_n2, vec1_n1)
     matR = np.kron(vec1_n1, matI_n1)
     matR = np.kron(matI_n1, matR)
@@ -60,23 +69,26 @@ def hnetInitParameters(sudoku, lH=4., lG=2., lR=1., lC=1., lB=1.):
     matB = np.kron(matI_m, matB)
     matB = np.kron(vec1_m, matB)
     matB = np.kron(matI_m, matB)
-# matrix and vector for binary QUBO
-    matP = lH*matH.T@matH
-    matP += lG*matG.T@matG
-    matP += lR*matR.T@matR
-    matP += lC*matC.T@matC
-    matP += lB*matB.T@matB
-    vecP = lH*2*vec1_nh@matH
-    vecP += lG*2*vec1_n2@matG
-    vecP += lR*2*vec1_n2@matR
-    vecP += lC*2*vec1_n2@matC
-    vecP += lB*2*vec1_n2@matB
-# matrix and vector for bipolar QUBO
+
+    # Create the matrix and vector for binary QUBO
+    matP = lH * matH.T @ matH
+    matP += lG * matG.T @ matG
+    matP += lR * matR.T @ matR
+    matP += lC * matC.T @ matC
+    matP += lB * matB.T @ matB
+    vecP = lH * 2 * vec1_nh @ matH
+    vecP += lG * 2 * vec1_n2 @ matG
+    vecP += lR * 2 * vec1_n2 @ matR
+    vecP += lC * 2 * vec1_n2 @ matC
+    vecP += lB * 2 * vec1_n2 @ matB
+
+    # Create the matrix and vector for bipolar QUBO
     matQ = 0.25 * matP
     vecQ = 0.50 * (matP @ vec1_n3 - vecP)
-# weight matrix and bias vector for Hopfield net
+
+    # Create the weight matrix
     matW = -2 * matQ
-    np . fill_diagonal(matW, 0)
+    np . fill_diagonal(matW, 0)  # Set diagonal elements to zero
     vecT = vecQ
     return matW, vecT
 
@@ -91,22 +103,23 @@ def hnetSimAnn(vecS, matW, vecT, Th=10, Tl=0.5, numT=21, rmax=200):
                 vecS[i] = 2 * z - 1
     return vecS
 
-def print_board(sudoku):
-    cell_id = 0
-    m = int(np.cbrt(len(sudoku)))
-    solution = np.ones(m*m, dtype=int)
-    for i in range(m*m):
-        for j in range(m):
-            if(sudoku[i*m+j] == 1):
-                solution[i] = j+1
-                print(j+1, end='   ')
-            if (j+1) % m == 0:
-                print('|', end=' ')
-        if (i+1) % m == 0:
-            print()
-            print('- ' * (m*m - m))
-            cell_id = cell_id + 1
-    return solution
+
+# def print_board(sudoku):
+#     cell_id = 0
+#     m = int(np.cbrt(len(sudoku)))
+#     solution = np.ones(m*m, dtype=int)
+#     for i in range(m*m):
+#         for j in range(m):
+#             if(sudoku[i*m+j] == 1):
+#                 solution[i] = j+1
+#                 print(j+1, end='   ')
+#             if (j+1) % m == 0:
+#                 print('|', end=' ')
+#         if (i+1) % m == 0:
+#             print()
+#             print('- ' * (m*m - m))
+#             cell_id = cell_id + 1
+#     return solution
 
 
 def genPuzzle():
@@ -170,22 +183,12 @@ def decode(sudoku):
     return solution.reshape(4, 4)
 
 
-def get_hamming_distance(a, b):
-    matrix1 = np.array(a).ravel()
-    matrix2 = np.array(b).ravel()
-
-    hamming_distance = sum(
-        [1 if x != y else 0 for x, y in zip(matrix1, matrix2)])
-    return hamming_distance
-
 def evaluate_sudoku_solver(puzzle_list, solution_list):
     num_correct = 0
     num_complete = 0
     for i in range(len(puzzle_list)):
         puzzle = puzzle_list[i]
         solution = solution_list[i]
-    # print(puzzle, solution)
-    # print("DEBUG HERE.")
     # check if the solution is correct
         is_correct = all([solution[i] == puzzle[i]
                          for i in range(len(solution))])
@@ -200,29 +203,17 @@ def evaluate_sudoku_solver(puzzle_list, solution_list):
     return accuracy, completeness
 
 
-# Example usage
-solver_solution = np.array(
-    [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]])
-true_solution = np.array(
-    [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]])
-evaluate_sudoku_solver(solver_solution, true_solution)
-
-
 # generate a set of sudoku puzzles
 num_of_zeros = 8
-num_puzzles = 100
+num_puzzles = 5
 puzzles = []
 solutions = []
 for i in range(num_puzzles):
     puzzle, solution = testingPuzzleGenerator(num_of_zeros)
     puzzles.append(puzzle)
     solutions.append(solution)
-# print(solution)
-# print(puzzle)
 
 # solve each puzzle and calculate completeness and accuracy
-# hamming_dists = np.zeros((num_puzzles, num_puzzles))
-# confusion_mats = np.zeros((num_puzzles, num_puzzles))
 total_accuracy = 0
 total_completeness = 0
 for i in range(num_puzzles):
@@ -230,16 +221,12 @@ for i in range(num_puzzles):
     n3 = puzzles[i].shape[0]**3
     vecS_i = rnd.binomial(n=1, p=0.05, size=n3)*2-1
     sol_i = hnetSimAnn(vecS_i, matW_i, vecT_i)
-# print_board(sol_i)
+    # print_board(sol_i)
     sol_i = decode(sol_i)
-# print(type(sol_i))
-# print(type(solutions[i]))
     accuracy, completeness = evaluate_sudoku_solver(
         sol_i, np.array(solutions[i]))
     total_accuracy += accuracy
     total_completeness += completeness
-# print(accuracy)
-# print(completeness)
 
 total_accuracy = total_accuracy/num_puzzles
 total_completeness = total_completeness/num_puzzles
