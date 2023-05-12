@@ -1,30 +1,24 @@
-import random as rnd
+# COMP5400M Assignment 2
+# Script that Geneerates sudokus and solves them with a Hopfield Network
+#
+# This implementation is base on the following paper:
+# Bauckhage C, Beaumont F, Müller S. ML2R Coding Nuggets Hopfield Nets for Sudoku.
+#
+# Author: Emmanuel Leo
+
+# Import Libraries
 import numpy as np
 import numpy.random as rnd
-import matplotlib.pyplot as plt
 import random
 
-# Define a list of puzzles, each with a solution
-puzzles = [
-    {
-        "puzzle": [0, 2, 0, 0, 0, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 3],
-        "solution": [3, 2, 4, 1, 1, 3, 1, 4, 2, 4, 1, 2, 2, 3, 4, 3],
-        "difficulty": "easy"
-    },
-    {
-        "puzzle": [0, 2, 4, 0, 0, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 3],
-        "solution": [3, 2, 4, 1, 1, 3, 1, 4, 2, 4, 1, 2, 2, 3, 4, 3],
-        "difficulty": "medium"
-    },
-    {
-        "puzzle": [0, 2, 4, 0, 1, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 3],
-        "solution": [3, 2, 4, 1, 1, 3, 1, 4, 2, 4, 1, 2, 2, 3, 4, 3],
-        "difficulty": "hard"
-    },
-    # More puzzles can be added here if needed
-]
-
 # Puzzle generator and solver functions
+
+# Defining Test Variables
+num_of_zeros = 8  # Specifies the number of zeros the problem should have
+num_puzzles = 50  # Specifes the number of puzzles to test the solver with test on
+
+# Definition of the Quadratic Unconstrained Binary Optimisation (QUBO) Problem that describes the sudoku problem
+# (Based on the paper acknowledged above)
 
 
 def hnetInitParameters(sudoku, lH=4., lG=2., lR=1., lC=1., lB=1.):
@@ -39,87 +33,75 @@ def hnetInitParameters(sudoku, lH=4., lG=2., lR=1., lC=1., lB=1.):
     # Count the number of given hints in the sudoku grid
     nh = np.sum(sudoku > 0)
 
-    # Create some vectors and matrices for later use
+    # Create some vectors and matrixrices for later use
     vec1_m = np.ones(m)
     vec1_n1 = np.ones(n1)
     vec1_n2 = np.ones(n2)
     vec1_n3 = np.ones(n3)
     vec1_nh = np.ones(nh)
-    matI_m = np.eye(m)
-    matI_n1 = np.eye(n1)
-    matI_n2 = np.eye(n2)
+    matrixI_m = np.eye(m)
+    matrixI_n1 = np.eye(n1)
+    matrixI_n2 = np.eye(n2)
 
     # Create the matrix for hint constraints
     h = 0
-    matH = np.zeros((nh, n3))
+    matrixH = np.zeros((nh, n3))
     for i in range(n1):
         for j in range(n1):
             v = sudoku[i, j]
             if v > 0:
                 # For each hint, set the corresponding row in the matrix to a one-hot encoding of the hint value
-                matH[h, i * n2 + j * n1: i * n2 + j * n1 + n1] = matI_n1[v - 1]
+                matrixH[h, i * n2 + j * n1: i * n2 +
+                        j * n1 + n1] = matrixI_n1[v - 1]
                 h = h + 1
 
-    # Create the matrices for cell, row, column, and block constraints
-    matG = np.kron(matI_n2, vec1_n1)
-    matR = np.kron(vec1_n1, matI_n1)
-    matR = np.kron(matI_n1, matR)
-    matC = np.kron(vec1_n1, matI_n2)
-    matB = np.kron(vec1_m, matI_n1)
-    matB = np.kron(matI_m, matB)
-    matB = np.kron(vec1_m, matB)
-    matB = np.kron(matI_m, matB)
+    # Create the matrixrices for cell, row, column, and block constraints
+    matrixG = np.kron(matrixI_n2, vec1_n1)
+    matrixR = np.kron(vec1_n1, matrixI_n1)
+    matrixR = np.kron(matrixI_n1, matrixR)
+    matrixC = np.kron(vec1_n1, matrixI_n2)
+    matrixB = np.kron(vec1_m, matrixI_n1)
+    matrixB = np.kron(matrixI_m, matrixB)
+    matrixB = np.kron(vec1_m, matrixB)
+    matrixB = np.kron(matrixI_m, matrixB)
 
     # Create the matrix and vector for binary QUBO
-    matP = lH * matH.T @ matH
-    matP += lG * matG.T @ matG
-    matP += lR * matR.T @ matR
-    matP += lC * matC.T @ matC
-    matP += lB * matB.T @ matB
-    vecP = lH * 2 * vec1_nh @ matH
-    vecP += lG * 2 * vec1_n2 @ matG
-    vecP += lR * 2 * vec1_n2 @ matR
-    vecP += lC * 2 * vec1_n2 @ matC
-    vecP += lB * 2 * vec1_n2 @ matB
+    matrixP = lH * matrixH.T @ matrixH
+    matrixP += lG * matrixG.T @ matrixG
+    matrixP += lR * matrixR.T @ matrixR
+    matrixP += lC * matrixC.T @ matrixC
+    matrixP += lB * matrixB.T @ matrixB
+    vecP = lH * 2 * vec1_nh @ matrixH
+    vecP += lG * 2 * vec1_n2 @ matrixG
+    vecP += lR * 2 * vec1_n2 @ matrixR
+    vecP += lC * 2 * vec1_n2 @ matrixC
+    vecP += lB * 2 * vec1_n2 @ matrixB
 
     # Create the matrix and vector for bipolar QUBO
-    matQ = 0.25 * matP
-    vecQ = 0.50 * (matP @ vec1_n3 - vecP)
+    matrixQ = 0.25 * matrixP
+    vecQ = 0.50 * (matrixP @ vec1_n3 - vecP)
 
     # Create the weight matrix
-    matW = -2 * matQ
-    np . fill_diagonal(matW, 0)  # Set diagonal elements to zero
+    matrixW = -2 * matrixQ
+    np . fill_diagonal(matrixW, 0)  # Set diagonal elements to zero
     vecT = vecQ
-    return matW, vecT
+    return matrixW, vecT
+
+# Function that performs simulated annealing (Based on paper acknowledged above)
 
 
-def hnetSimAnn(vecS, matW, vecT, Th=10, Tl=0.5, numT=21, rmax=200):
-    n = len(vecS)
-    for T in np . linspace(Th, Tl, numT):
+def hnetSimAnn(state_vector, matrixW, vecT, max_Temp=10, min_Temp=0.5, numT=21, rmax=200):  # Define
+    n = len(state_vector)
+    for T in np.linspace(max_Temp, min_Temp, numT):
         for r in range(rmax):
             for i in range(n):
-                q = 1 / (1 + np . exp(-2 / T * (matW[i] @ vecS - vecT[i])))
+                q = 1 / (1 + np . exp(-2 / T *
+                         (matrixW[i] @ state_vector - vecT[i])))
                 z = rnd . binomial(n=1, p=q)
-                vecS[i] = 2 * z - 1
-    return vecS
+                state_vector[i] = 2 * z - 1
+    return state_vector
 
-
-# def print_board(sudoku):
-#     cell_id = 0
-#     m = int(np.cbrt(len(sudoku)))
-#     solution = np.ones(m*m, dtype=int)
-#     for i in range(m*m):
-#         for j in range(m):
-#             if(sudoku[i*m+j] == 1):
-#                 solution[i] = j+1
-#                 print(j+1, end='   ')
-#             if (j+1) % m == 0:
-#                 print('|', end=' ')
-#         if (i+1) % m == 0:
-#             print()
-#             print('- ' * (m*m - m))
-#             cell_id = cell_id + 1
-#     return solution
+# Generates a 4 by 4 sudoku puzzle from the first 4 non-zero digits
 
 
 def genPuzzle():
@@ -135,6 +117,8 @@ def genPuzzle():
             grid[i][j] = random.choice(choices)
     return grid.astype(int).tolist()
 
+# Randomly sets the specified number of cells in grid to zero
+
 
 def makePuzzle(grid, num_zeros):
     puzzle = np.copy(grid)
@@ -145,31 +129,37 @@ def makePuzzle(grid, num_zeros):
         puzzle[i][j] = 0
     return np.array(puzzle)
 
+# Wrapper function that generates puzzles from a solution
+
 
 def testingPuzzleGenerator(num_of_zeros):
     print(f"Puzzle {i+1}:")
     solution = genPuzzle()
     puzzle = makePuzzle(solution, num_of_zeros)
-
-    for row in solution:
+    # Print Puzzle
+    for row in puzzle:
         print(row)
     print()
-    print(solution)
+    print(puzzle)
 
     return puzzle, solution
 
+# Prints the sudoku as an n by n grid of un-encoded digits
+
 
 def print_board(sudoku):
-    m = int(np.cbrt(len(sudoku)))
-    for i in range(m*m):
-        for j in range(m):
-            if(sudoku[i*m+j] == 1):
+    n = int(np.cbrt(len(sudoku)))
+    for i in range(n*n):
+        for j in range(n):
+            if(sudoku[i*n+j] == 1):
                 print(j+1, end='   ')
-            if (j+1) % m == 0:
+            if (j+1) % n == 0:
                 print('|', end=' ')
-        if (i+1) % m == 0:
+        if (i+1) % n == 0:
             print()
-            print('- ' * (m*m - m))
+            print('- ' * (n*n - n))
+
+# Takes the sudoku solution in the one-hot encoding formatrix and converts it back to the digits of the puzzle
 
 
 def decode(sudoku):
@@ -181,6 +171,8 @@ def decode(sudoku):
                 solution[i] = j+1
     print(solution.reshape(4, 4))
     return solution.reshape(4, 4)
+
+# Calculates the accuracy and completeness scores of the function
 
 
 def evaluate_sudoku_solver(puzzle_list, solution_list):
@@ -204,12 +196,13 @@ def evaluate_sudoku_solver(puzzle_list, solution_list):
 
 
 # generate a set of sudoku puzzles
-num_of_zeros = 8
-num_puzzles = 5
 puzzles = []
 solutions = []
 for i in range(num_puzzles):
     puzzle, solution = testingPuzzleGenerator(num_of_zeros)
+# Uncomment to view generated solutions and puzles for testin
+    # print(puzzle.reshape(4,4))
+    # print(solution.reshape(4,4))
     puzzles.append(puzzle)
     solutions.append(solution)
 
@@ -217,14 +210,14 @@ for i in range(num_puzzles):
 total_accuracy = 0
 total_completeness = 0
 for i in range(num_puzzles):
-    matW_i, vecT_i = hnetInitParameters(puzzles[i])
+    matrixW_i, vecT_i = hnetInitParameters(puzzles[i])
     n3 = puzzles[i].shape[0]**3
-    vecS_i = rnd.binomial(n=1, p=0.05, size=n3)*2-1
-    sol_i = hnetSimAnn(vecS_i, matW_i, vecT_i)
-    # print_board(sol_i)
-    sol_i = decode(sol_i)
+    state_vector_i = rnd.binomial(n=1, p=0.05, size=n3)*2-1
+    solution_attempt = hnetSimAnn(state_vector_i, matrixW_i, vecT_i)
+    # print_board(solution_attempt)
+    solution_attempt = decode(solution_attempt)
     accuracy, completeness = evaluate_sudoku_solver(
-        sol_i, np.array(solutions[i]))
+        solution_attempt, np.array(solutions[i]))
     total_accuracy += accuracy
     total_completeness += completeness
 
