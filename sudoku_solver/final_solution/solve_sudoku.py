@@ -14,7 +14,7 @@ import random
 # Puzzle generator and solver functions
 
 # Defining Test Variables
-num_of_zeros = 8  # Specifies the number of zeros the problem should have
+num_of_zeros = 17  # Specifies the number of zeros the problem should have
 num_puzzles = 50  # Specifes the number of puzzles to test the solver with test on
 
 # Definition of the Quadratic Unconstrained Binary Optimisation (QUBO) Problem that describes the sudoku problem
@@ -133,14 +133,14 @@ def makePuzzle(grid, num_zeros):
 
 
 def testingPuzzleGenerator(num_of_zeros):
-    print(f"Puzzle {i+1}:")
+    # print(f"Puzzle {i+1}:")
     solution = genPuzzle()
     puzzle = makePuzzle(solution, num_of_zeros)
     # Print Puzzle
-    for row in puzzle:
-        print(row)
-    print()
-    print(puzzle)
+    # for row in puzzle:
+    #     print(row)
+    # print()
+    # print(puzzle)
 
     return puzzle, solution
 
@@ -169,7 +169,7 @@ def decode(sudoku):
         for j in range(m):
             if(sudoku[i*m+j] == 1):
                 solution[i] = j+1
-    print(solution.reshape(4, 4))
+    # print(solution.reshape(4, 4))
     return solution.reshape(4, 4)
 
 # Calculates the accuracy and completeness scores of the function
@@ -196,32 +196,35 @@ def evaluate_sudoku_solver(puzzle_list, solution_list):
 
 
 # generate a set of sudoku puzzles
-puzzles = []
-solutions = []
-for i in range(num_puzzles):
-    puzzle, solution = testingPuzzleGenerator(num_of_zeros)
-# Uncomment to view generated solutions and puzles for testin
-    # print(puzzle.reshape(4,4))
-    # print(solution.reshape(4,4))
-    puzzles.append(puzzle)
-    solutions.append(solution)
+for zeros in range(num_of_zeros):
+    print(f"number of zeros in puzzle is: ", end=' ')
+    print(zeros)
+    puzzles = []
+    solutions = []
+    for i in range(num_puzzles):
+        puzzle, solution = testingPuzzleGenerator(zeros)
+    # Uncomment to view generated solutions and puzles for testin
+        # print(puzzle.reshape(4,4))
+        # print(solution.reshape(4,4))
+        puzzles.append(puzzle)
+        solutions.append(solution)
 
-# solve each puzzle and calculate completeness and accuracy
-total_accuracy = 0
-total_completeness = 0
-for i in range(num_puzzles):
-    matrixW_i, vecT_i = hnetInitParameters(puzzles[i])
-    n3 = puzzles[i].shape[0]**3
-    state_vector_i = rnd.binomial(n=1, p=0.05, size=n3)*2-1
-    solution_attempt = hnetSimAnn(state_vector_i, matrixW_i, vecT_i)
-    # print_board(solution_attempt)
-    solution_attempt = decode(solution_attempt)
-    accuracy, completeness = evaluate_sudoku_solver(
-        solution_attempt, np.array(solutions[i]))
-    total_accuracy += accuracy
-    total_completeness += completeness
+    # solve each puzzle and calculate completeness and accuracy
+    total_accuracy = 0
+    total_completeness = 0
+    for i in range(num_puzzles):
+        matrixW_i, vecT_i = hnetInitParameters(puzzles[i])
+        n3 = puzzles[i].shape[0]**3
+        state_vector_i = rnd.binomial(n=1, p=0.05, size=n3)*2-1
+        solution_attempt = hnetSimAnn(state_vector_i, matrixW_i, vecT_i)
+        # print_board(solution_attempt)
+        solution_attempt = decode(solution_attempt)
+        accuracy, completeness = evaluate_sudoku_solver(
+            solution_attempt, np.array(solutions[i]))
+        total_accuracy += accuracy
+        total_completeness += completeness
 
-total_accuracy = total_accuracy/num_puzzles
-total_completeness = total_completeness/num_puzzles
-print(total_accuracy)
-print(total_completeness)
+    total_accuracy = total_accuracy/num_puzzles
+    total_completeness = total_completeness/num_puzzles
+    print(total_accuracy)
+    print(total_completeness)
